@@ -64,7 +64,7 @@ def arraytomidi(fitxer):
 
                 elif (ar[2] == 'track_name'):
                     l2 = ar[3].split("=")
-                    l3 = ar[(len(e)-1)].split("=")
+                    l3 = ar[(len(ar)-1)].split("=")
                     e2 = l3[1].replace('>', '')
                     if (outfile.type != 0):
                         track = MidiTrack()
@@ -125,13 +125,13 @@ def arraytomidi(fitxer):
                     track.append(Message(type= 'sysex', data=e4, time=int(e2)))
 
                 elif (ar[2]=='midi_port'):
-                    l2 = e[3].split("=")
-                    l3 = e[4].split("=")
+                    l2 = ar[3].split("=")
+                    l3 = ar[4].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type='midi_port', port=int(l2[1]), time=int(e2)))
                 elif (ar[2]=='lyrics'):
-                    l2 = e[3].split("=")
-                    l3 = e[len(e) - 1].split("=")
+                    l2 = ar[3].split("=")
+                    l3 = ar[len(ar) - 1].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type="lyrics", text=l2[1], time=int(e2)))
                 elif (ar[0]=='control_change'):
@@ -140,11 +140,21 @@ def arraytomidi(fitxer):
                     l4 = ar[3].split("=")
                     l5 = ar[4].split("=")
                     track.append(Message(type='sysex', channel=int(l2), control=int(l3) , value=int(l4) , time=int(l5)))
+                elif (ar[2]=='smpte_offset'):
+                    l2 = ar[3].split("=")
+                    l3 = ar[4].split("=")
+                    l4 = ar[5].split("=")
+                    l5 = ar[6].split("=")
+                    l6 = ar[7].split("=")
+                    l7 = ar[8].split("=")
+                    l8 = ar[9].split("=")
+                    e2 = l8[1].replace('>', '')
+                    track.append((MetaMessage(type='smpte_offset', frame_rate=int(l2[1]), hours=int(l3[1]), minutes=int(l4[1]), seconds=int(l5[1]), frames=int(l6[1]), sub_frames=int(l7[1]), time=int(e2))))
                 else:
                     print("CIGUEÑA")
                     print(ar)
 
-    outfile.save('tests2/test1-2.MID')
+    outfile.save('tests2/test1-6.MID')
 
 
 def miditoarray():
@@ -152,7 +162,7 @@ def miditoarray():
         w = 0
         mat = []
         arr = []
-        midi_file = MidiFile('Songs/beatles-imagine.mid')
+        midi_file = MidiFile('Songs/vivaldi.spring.mid')
         arr.append(midi_file.type)
         mat.append(arr)
         arr = []
@@ -227,23 +237,19 @@ def graficador(s):
         if (len(c)!=0 and len(c)!=1 and len(c)==5):
             oo.append(c[0])
             if (c[0]==1):
-                if(c[3]!=0):
-                    nota.append(c[2])
-                    if(temps!=[]):
-                        temps.append(c[4]+temps[e])
-                        e = e + 1
-                    else:
-                        temps.append(c[4] + 0)
-                elif(temps[-1]>500):
-                    break
+                nota.append(c[2])
+                if(temps!=[]):
+                    temps.append(c[4]+temps[e])
+                    e = e + 1
+                else:
+                    temps.append(c[4] + 0)
             elif (c[0]==0):
-                if (c[3] != 0):
-                    onota.append(c[2])
-                    if (otemps != []):
-                        otemps.append(c[4] + otemps[oe])
-                        oe = oe + 1
-                    else:
-                        otemps.append(c[4] + 0)
+                onota.append(c[2])
+                if (otemps != []):
+                    otemps.append(c[4] + otemps[oe])
+                    oe = oe + 1
+                else:
+                    otemps.append(c[4] + 0)
 
         elif (isinstance(c[0], int)==False and c[0]!="latin1"):
             oo.append(2)
@@ -264,13 +270,13 @@ def graficador(s):
         if (y==0):
             if (l!=0):
                 matriu.append([y, onota[l],otemps[l]-otemps[l-1]])
-            else:
+            elif (onota!=[] and otemps!=[]):
                 matriu.append([y, onota[l], otemps[l]])
             l = l + 1
         elif (y==1):
             if (i!=0):
                 matriu.append([y, nota[i],temps[i]-temps[i-1]])
-            else:
+            elif (nota!=[] and temps!=[]):
                 matriu.append([y, nota[i], temps[i]])
             i = i + 1
         elif (y==2):
