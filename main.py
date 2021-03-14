@@ -16,8 +16,10 @@ def arraytomidi(fitxer):
     print(len(notes))
     ar = notes[0]
     outfile.type = int(ar[0])
+    print (int(ar[0]))
     ar = notes[1]
     outfile.ticks_per_beat = int(ar[0])
+    print(int(ar[0]))
     ar = notes[2]
     outfile.charset = (ar[0])
     print(outfile.charset)
@@ -36,6 +38,10 @@ def arraytomidi(fitxer):
                 elif (ar[0] == 0 and len(ar)==5):
                     track.append(Message('note_off', channel = ar[1], note=ar[2], velocity=ar[3], time=ar[4]))
                     lll = lll+1
+                elif (len(ar)==3 and ar[0]==0):
+                    track.append(Message('note_off', note=ar[0], velocity=64, time=ar[1]))
+                elif (len(ar)==3 and ar[0]==1):
+                    track.append(Message('note_on', note=ar[0], velocity=64, time=ar[1]))
 
             else:
                 e = ar[0]
@@ -101,7 +107,6 @@ def arraytomidi(fitxer):
                     l4 = e[3].split("=")
                     e2 = l4[1].replace('>', '')
                     track.append(Message('program_change', channel=int(l2[1]), program=int(l3[1]), time = int(e2)))
-                    print("llall")
                 elif (e[0]=='control_change'):
                     l2 = e[1].split("=")
                     l3 = e[2].split("=")
@@ -126,7 +131,6 @@ def arraytomidi(fitxer):
                     l3 = e[4].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type='midi_port', port=int(l2[1]), time=int(e2)))
-                    print(e)
                 elif (e[2]=='lyrics'):
                     l2 = e[3].split("=")
                     l3 = e[len(e) - 1].split("=")
@@ -140,7 +144,7 @@ def arraytomidi(fitxer):
 
     print("si")
     print (lll)
-    outfile.save('tests/test32.MID')
+    outfile.save('tests2/test1-1.MID')
 
 
 def miditoarray():
@@ -168,7 +172,6 @@ def miditoarray():
                 e = (format(message).split())
                 if (e[0] == 'program_change'):
                     arr.append(e)
-                    print(arr)
                 elif (e[0] == '<meta'):
                     arr.append(e)
 
@@ -213,25 +216,69 @@ def miditoarray():
 def graficador(s):
     nota = []
     temps = []
+    oo = []
+    onota = []
+    otemps = []
+    matriu = []
+    meta = []
+    i = 0
     e=0
+    oe=0
     for c in s:
-        if (len(c)!=0 and len(c)!=1 and len(c)==5 and c[0]==1):
-            if(c[3]!=0):
-                nota.append(c[3])
-                if(temps!=[]):
-                    temps.append(c[4]+temps[e])
-                    e = e + 1
-                else:
-                    temps.append(c[4] + 0)
+        if (len(c)!=0 and len(c)!=1 and len(c)==5):
+            oo.append(c[0])
+            if (c[0]==1):
+                if(c[3]!=0):
+                    nota.append(c[2])
+                    if(temps!=[]):
+                        temps.append(c[4]+temps[e])
+                        e = e + 1
+                    else:
+                        temps.append(c[4] + 0)
+                elif(temps[-1]>500):
+                    break
+            elif (c[0]==0):
+                if (c[3] != 0):
+                    onota.append(c[2])
+                    if (otemps != []):
+                        otemps.append(c[4] + otemps[oe])
+                        oe = oe + 1
+                    else:
+                        otemps.append(c[4] + 0)
 
-            elif(c[2]=='end_of_track'):
-                break
-            elif(temps[-1]>500):
-                break
+        elif (isinstance(c[0], int)==False and c[0]!="latin1"):
+            print ("eeoo")
+            oo.append(2)
+            a = c[0]
+            meta.append(a)
     plt.plot(temps, nota)
     plt.title('Test 1')
     plt.xlabel('Temps')
     plt.ylabel('Nota')
     plt.show()
-    return 0
-graficador(miditoarray())
+    matriu.append(s[0])
+    matriu.append(s[1])
+    matriu.append(s[2])
+    i = 0
+    l = 0
+    p = 0
+    for y in oo:
+        if (y==0):
+            if (l!=0):
+                matriu.append([y, onota[l],otemps[l]-otemps[l-1]])
+            else:
+                matriu.append([y, onota[l], otemps[l]])
+            l = l + 1
+        elif (y==1):
+            if (i!=0):
+                matriu.append([y, nota[i],temps[i]-temps[i-1]])
+            else:
+                matriu.append([y, nota[i], temps[i]])
+            i = i + 1
+        elif (y==2):
+            matriu.append(meta[p])
+            p = p + 1
+    print(s)
+    print (matriu)
+    return (matriu)
+arraytomidi(graficador(miditoarray()))
