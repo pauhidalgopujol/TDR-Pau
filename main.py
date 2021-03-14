@@ -39,14 +39,14 @@ def arraytomidi(fitxer):
                     track.append(Message('note_off', channel = ar[1], note=ar[2], velocity=ar[3], time=ar[4]))
                     lll = lll+1
                 elif (len(ar)==3 and ar[0]==0):
-                    track.append(Message('note_off', note=ar[0], velocity=64, time=ar[1]))
+                    track.append(Message('note_off', channel = 0, note=ar[1], velocity=64, time=ar[2]))
                 elif (len(ar)==3 and ar[0]==1):
-                    track.append(Message('note_on', note=ar[0], velocity=64, time=ar[1]))
+                    track.append(Message('note_on', channel = 0, note=ar[1], velocity=64, time=ar[2]))
 
-            else:
+            elif (len(ar)!=1):
                 e = ar[0]
-                if (e[2] == 'end_of_track'):
-                    l2 = e[3].split("=")
+                if (ar[2] == 'end_of_track'):
+                    l2 = ar[3].split("=")
                     e2 = l2[1].replace('>', '')
                     track.append(MetaMessage(type='end_of_track', time=int(e2)))
                     if (i+1<len(notes)):
@@ -62,9 +62,9 @@ def arraytomidi(fitxer):
                             wa = wa + 1
 
 
-                elif (e[2] == 'track_name'):
-                    l2 = e[3].split("=")
-                    l3 = e[(len(e)-1)].split("=")
+                elif (ar[2] == 'track_name'):
+                    l2 = ar[3].split("=")
+                    l3 = ar[(len(e)-1)].split("=")
                     e2 = l3[1].replace('>', '')
                     if (outfile.type != 0):
                         track = MidiTrack()
@@ -74,13 +74,12 @@ def arraytomidi(fitxer):
                     else:
                         a = str(l2[1])
                         track.append(MetaMessage(type='track_name', name=a, time=int(e2)))
-                    print("aaaaaaldfjasd")
-                elif (e[2] == 'time_signature'):
-                    l2 = e[3].split("=")
-                    l3 = e[4].split("=")
-                    l4 = e[5].split("=")
-                    l5 = e[6].split("=")
-                    l6 = e[7].split("=")
+                elif (ar[2] == 'time_signature'):
+                    l2 = ar[3].split("=")
+                    l3 = ar[4].split("=")
+                    l4 = ar[5].split("=")
+                    l5 = ar[6].split("=")
+                    l6 = ar[7].split("=")
                     e2 = l6[1].replace('>', '')
                     track.append(MetaMessage(type="time_signature", numerator=int(l2[1]), denominator=int(l3[1]),
                                              clocks_per_click=int(l4[1]), notated_32nd_notes_per_beat=int(l5[1]),
@@ -91,9 +90,9 @@ def arraytomidi(fitxer):
                     l3 = e[4].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type="key_signature", key=e1[1], time=int(e2)))
-                elif (e[2] == 'set_tempo'):
-                    l2 = e[3].split("=")
-                    l3 = e[4].split("=")
+                elif (ar[2] == 'set_tempo'):
+                    l2 = ar[3].split("=")
+                    l3 = ar[4].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type="set_tempo", tempo=int(l2[1]), time=int(e2)))
                 elif (e[2] == 'instrument_name'):
@@ -101,22 +100,21 @@ def arraytomidi(fitxer):
                     l3 = e[len(e)-1].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type="instrument_name", name = l2[1], time = int(e2)))
-                elif (e[0]=='program_change'):
-                    l2 = e[1].split("=")
-                    l3 = e[2].split("=")
-                    l4 = e[3].split("=")
+                elif (e=='program_change'):
+                    l2 = ar[1].split("=")
+                    l3 = ar[2].split("=")
+                    l4 = ar[3].split("=")
                     e2 = l4[1].replace('>', '')
-                    track.append(Message('program_change', channel=int(l2[1]), program=int(l3[1]), time = int(e2)))
-                elif (e[0]=='control_change'):
-                    l2 = e[1].split("=")
-                    l3 = e[2].split("=")
-                    l4 = e[3].split("=")
-                    l5 = e[4].split("=")
-                    e2 = l5[1].replace('>', '')
-                    track.append(Message('control_change', channel=int(l2[1]), control=int(l3[1]), value = int(l4[1]), time=int(e2)))
-                elif (e[0]=='sysex'):
-                    l2 = e[1].split("=")
-                    l3 = e[2].split("=")
+                    track.append(Message('program_change', channel=int(l2[1]), program=int(l3[1]), time = int(l4[1])))
+                elif (e=='control_change'):
+                    l2 = ar[1].split("=")
+                    l3 = ar[2].split("=")
+                    l4 = ar[3].split("=")
+                    l5 = ar[4].split("=")
+                    track.append(Message('control_change', channel=int(l2[1]), control=int(l3[1]), value = int(l4[1]), time=int(l5[1])))
+                elif (e=='sysex'):
+                    l2 = ar[1].split("=")
+                    l3 = ar[2].split("=")
                     e2 = l3[1].replace('>', '')
                     e3 = l2[1].split(',')
                     e4 = []
@@ -126,25 +124,27 @@ def arraytomidi(fitxer):
                         e4.append(int(o))
                     track.append(Message(type= 'sysex', data=e4, time=int(e2)))
 
-                elif (e[2]=='midi_port'):
+                elif (ar[2]=='midi_port'):
                     l2 = e[3].split("=")
                     l3 = e[4].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type='midi_port', port=int(l2[1]), time=int(e2)))
-                elif (e[2]=='lyrics'):
+                elif (ar[2]=='lyrics'):
                     l2 = e[3].split("=")
                     l3 = e[len(e) - 1].split("=")
                     e2 = l3[1].replace('>', '')
                     track.append(MetaMessage(type="lyrics", text=l2[1], time=int(e2)))
+                elif (ar[0]=='control_change'):
+                    l2 = ar[1].split("=")
+                    l3 = ar[2].split("=")
+                    l4 = ar[3].split("=")
+                    l5 = ar[4].split("=")
+                    track.append(Message(type='sysex', channel=int(l2), control=int(l3) , value=int(l4) , time=int(l5)))
                 else:
                     print("CIGUEÑA")
-                    print(e)
+                    print(ar)
 
-
-
-    print("si")
-    print (lll)
-    outfile.save('tests2/test1-1.MID')
+    outfile.save('tests2/test1-2.MID')
 
 
 def miditoarray():
@@ -211,7 +211,6 @@ def miditoarray():
                 w = w + 1
     else:
         print("aveurequepasa")
-
     return mat
 def graficador(s):
     nota = []
@@ -247,7 +246,6 @@ def graficador(s):
                         otemps.append(c[4] + 0)
 
         elif (isinstance(c[0], int)==False and c[0]!="latin1"):
-            print ("eeoo")
             oo.append(2)
             a = c[0]
             meta.append(a)
@@ -278,7 +276,6 @@ def graficador(s):
         elif (y==2):
             matriu.append(meta[p])
             p = p + 1
-    print(s)
-    print (matriu)
+    print(matriu)
     return (matriu)
 arraytomidi(graficador(miditoarray()))
