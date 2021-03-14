@@ -278,7 +278,6 @@ def graficador(s):
         elif (y==2):
             matriu.append(meta[p])
             p = p + 1
-    print(s)
     print (matriu)
     return (matriu)
 arraytomidi(graficador(miditoarray()))
